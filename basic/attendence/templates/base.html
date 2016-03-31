@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>{{ title_text }}</title>
+    {% load staticfiles %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{% static 'attendence/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
+    <link href="{% static 'attendence/base.css' %}" rel="stylesheet" media="screen">
+    <script type="text/javascript" src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="{% static 'attendence/bootstrap/js/bootstrap.js' %}"></script>
+    {% block head %} {% endblock %}
+</head>
+
+<body>
+    <div class="container-fluid padding_0">
+        <div class="row">
+            <div class="col-md-12">
+                <div id="header">
+                    <span>Welcome to admin page!</span>
+                </div>
+            </div>
+        </div>
+        <div class="row main">
+            <div class="col-md-3">
+                <div class="panel-group" id="menu">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <a class="panel-title" data-toggle="collapse" data-parent="#menu" href="#panel-element-I">
+                                <img src="{% static 'attendence/ico/home.png' %}" style="width: 15px; height: 15px;">
+                                <span>System Administrator</span>
+                            </a>
+                        </div>
+                        <div class="panel-collapse collapse in" id="panel-element-I">
+                            <div class="panel-body">
+                                <a href="{% url 'attendence:employee_manage'%}">User Management</a>
+                            </div>
+                            <div class="panel-body">
+                                <a href="{% url 'attendence:punch_manage' %}">Punch Management</a>
+                            </div>
+                            <div class="panel-body">
+                                <a href="#">Modify User Password</a>
+                            </div>
+                            <div class="panel-body">
+                                <a href="#">Attendance correction</a>
+                            </div>
+                            <div class="panel-body">
+                                <a href="#">Approval for leave</a>
+                            </div>
+                            <div class="panel-body">
+                                <a href="#">Approval for overtime</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <a class="panel-title collapsed" data-toggle="collapse" data-parent="#menu" href="#panel-element-II">Statistical module</a>
+                        </div>
+                        <div id="panel-element-II" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <a href="#">Daily attendence infomation</a>
+                            </div>
+                            <div class="panel-body">
+                                <a href="#">Monthly attendence infomation</a>
+                            </div>
+                            <div class="panel-body">
+                                <a href="#">Leave/Overtime remaining</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- main page -->
+            <div class="col-md-9" id="page">
+                {% block page %} {% endblock %}
+            </div>
+        </div>
+        <div class="row" id="footer">
+            <div class="col-md-12">
+                <span class="label label-default">This is footer</span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

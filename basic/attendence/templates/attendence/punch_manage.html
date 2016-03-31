@@ -1,0 +1,333 @@
+{% extends 'base.html' %} {% block page %}{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'attendence/jqwidgets/styles/jqx.base.css' %}" type="text/css" />
+<link rel="stylesheet" href="{% static 'attendence/jqwidgets/styles/jqx.energyblue.css' %}" type="text/css" />
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxcore.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxdata.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxbuttons.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxscrollbar.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxlistbox.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxdropdownlist.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxdatatable.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxwindow.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxpanel.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxbuttons.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxinput.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/js/jqExtend.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxtooltip.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxcalendar.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxcombobox.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxdatetimeinput.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/globalization/globalize.js' %}"></script>
+
+<script type="text/javascript">
+    var edit_punch_id = '';
+    $(function(){
+        $("#username,#useremail,#punch_time,#punch_time_add,#punch_date_add,#punchdate_forsearch").jqxInput({
+            height: 25,
+            width: 200
+        });
+        $('#add_new,#cancel_add,#add,#save,#cancel,#searchby_punchdate').jqxButton({
+            width: '120px',
+            height: '25px'
+        })
+        $("#username").jqxInput({
+            placeHolder: "User Name",
+            disabled: true
+        });
+        $("#useremail").jqxInput({
+            placeHolder: "User Email",
+            disabled: true
+        });
+        $("#punch_time").jqxInput({
+            placeHolder: "Punch Time"
+        });
+        $("#punch_time_add").jqxInput({
+            placeHolder: "Punch Time"
+        });
+        $("#punch_date_add").jqxInput({
+            placeHolder: "Punch Date"
+        });
+        $('#punchdate_forsearch').jqxInput({
+            placeHolder: "Search punch info by date"
+        });
+
+        $("#jqxcalendar").jqxCalendar({ width: '200px', height: '200px' });
+        $('#jqxcalendar').bind('valuechanged', function (event) {
+            var date = event.args.date;
+            $('#punch_date_add').val(date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate());
+        });
+        $('#punch_date_add').dblclick(function(event){
+            $(document).one("click", function (){//对document绑定一个影藏Div方法
+                $('#jqxcalendar').hide();
+            });
+            event.stopPropagation();//阻止事件向上冒泡
+            $('#jqxcalendar').fadeIn();
+        });
+        $("#calendar_search").jqxCalendar({ width: '200px', height: '200px' });
+        $('#calendar_search').bind('valuechanged', function (event) {
+            var date = event.args.date;
+            $('#punchdate_forsearch').val(date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate());
+        });
+        $('#punchdate_forsearch').dblclick(function(event){
+            $(document).one("click", function (){//对document绑定一个影藏Div方法
+                $('#calendar_search').hide();
+            });
+            event.stopPropagation();//阻止事件向上冒泡
+            $("#calendar_search").fadeIn();
+        });
+        
+        $('#add').click(function(){
+            $('#EditpunchInfoDiv').clear();
+            $('#EditpunchInfoDiv').hide();
+            $.ajax({
+              dataType:"json",
+              async:true,
+              url: "{% url 'attendence:addpunchinfo' %}",
+              success:function(response){
+                  var usernames = new Array();
+                  for(i in response){
+                      usernames.push(response[i].fields.user_name);
+                  }
+                  $("#jqxcombobox").jqxComboBox({ source: usernames });
+                  $('#AddpunchInfoDiv').fadeIn();
+              }
+            });
+        });
+        
+        $('#save').click(function(){
+            var punch_time = $('#punch_time').val();
+            var username = $('#username').val();
+            $.ajax({
+              dataType: "json",
+              type: "POST",
+              async:true,
+              url: "manage/savepunchinfo/",
+              data: "punch_time="+punch_time+"&username="+username+"&csrfmiddlewaretoken="+$("input[name='csrfmiddlewaretoken']").val(),
+              success:function(response){
+                  $('#EditpunchInfoDiv').clear();
+                  $('#EditpunchInfoDiv').fadeOut();
+                  window.location.reload();
+              }
+            });
+        });
+
+        var username_dropdown = '';
+        $('#jqxcombobox').bind('select', function (event) {
+            var args = event.args;
+            var item = $('#jqxcombobox').jqxComboBox('getItem', args.index);
+            username_dropdown = item.label;
+        });
+        $('#add_new').click(function(){
+            var punch_time = $('#punch_date_add').val()+' '+$('#punch_time_add').val();
+            var username = username_dropdown;
+            $.ajax({
+              dataType: "json",
+              type: "POST",
+              async:true,
+              url: "manage/savepunchinfo/",
+              data: "punch_time="+punch_time+"&username="+username+"&csrfmiddlewaretoken="+$("input[name='csrfmiddlewaretoken']").val(),
+              success:function(response){
+                  $('#AddpunchInfoDiv').clear();
+                  $('#AddpunchInfoDiv').fadeOut();
+                  window.location.reload();
+              }
+            });
+        });
+
+        $('#searchby_punchdate').click(function(){
+            $('#AddpunchInfoDiv').hide();
+            $('#EditpunchInfoDiv').hide();
+            var search_content = $('#punchdate_forsearch').val();
+            $.ajax({
+                dataType: 'json',
+                url: 'manage/punchoinfo_search/' + search_content ,
+                async: true,
+                success:function(response){
+                    var source = {
+                        dataType: "json",
+                        dataFields: [
+                            { name: 'user_name',map:'user_name' },
+                            { name: 'entry_date_start',map:'entry_date_start' },
+                            { name: 'entry_date_end',map:'entry_date_end' },
+                            { name: 'full_name',map:'full_name' }
+                        ],
+                        localData: response.list_end
+                    };
+                    var dataAdapter = new $.jqx.dataAdapter(source);
+                    $("#dataTable_search").jqxDataTable({
+                        altRows: true,
+                        sortable: true,
+                        source: dataAdapter,
+                        columns: [
+                            { text: 'User Name', dataField: 'user_name', width: 150 },
+                            { text: 'Punch Time Start', dataField: 'entry_date_start', width: 300 },
+                            { text: 'Punch Time End', dataField: 'entry_date_end', width: 300 },
+                            { text: 'Full Name', dataField: 'full_name', width: 150, align: 'left', cellsAlign: 'left'}
+                          ]
+                    });
+                }
+            });
+        });
+
+        $('#cancel_add').click(function(){
+            $('#AddpunchInfoDiv').clear();
+            $('#AddpunchInfoDiv').fadeOut();
+        });
+        $('#cancel').click(function(){
+            $('#EditpunchInfoDiv').fadeOut();
+            $('#EditpunchInfoDiv').clear();
+        });
+
+        //init table
+        $.ajax({
+            dataType:"json",
+            async:true,
+            url:"{% url 'attendence:get_punchinfos' %}",
+            success:function(response){
+                // alert(JSON.stringify(response.list_end));
+
+                var source = {
+                    dataType: "json",
+                    dataFields: [
+                        { name: 'user_name',map:'user_name' },
+                        { name: 'entry_date_start',map:'entry_date_start' },
+                        { name: 'entry_date_end',map:'entry_date_end' },
+                        { name: 'full_name',map:'full_name' }
+                    ],
+                    localData: response.list_end
+                };
+                // alert(JSON.stringify(source));
+                var dataAdapter = new $.jqx.dataAdapter(source);
+                $("#dataTable").jqxDataTable({
+                    altRows: true,
+                    sortable: true,
+                    source: dataAdapter,
+                    columns: [
+                        { text: 'User Name', dataField: 'user_name', width: 150 },
+                        { text: 'Punch Time Start', dataField: 'entry_date_start', width: 300 },
+                        { text: 'Punch Time End', dataField: 'entry_date_end', width: 300 },
+                        { text: 'Full Name', dataField: 'full_name', width: 150, align: 'left', cellsAlign: 'left'}
+                      ]
+                });
+            }
+        });
+        
+
+});
+
+    function GetPunchInfo(id){
+      edit_punch_id = id;
+      $('#EditpunchInfoDiv').fadeIn();
+      url = "manage/editinfo/" + id;
+      $.ajax({
+        dataType: "json",
+        async: true,
+        url: url,
+        success: function(response){
+          // alert(JSON.stringify(response));
+          // alert(response[0].fields.user_name);
+          $('#username').val(response.employee_username);
+          $('#useremail').val(response.employee_email);
+          $('#punch_time').val(response.punch_time);
+          $('#punch_time').focus();
+        }
+      });
+    }
+</script>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <strong>Punch Management Yesterday</strong>
+        </h3>
+    </div>
+    <div class="panel-body">
+        <table>
+        <tr>
+          <th width="100px">User Name</th>
+          <th width="300px">Punch Time Start</th>
+          <th width="300px">Punch Time End</th>
+          <th width="100px">Full Name</th>
+        </tr>
+          {% for item in list_end %}
+          <tr>
+              <!-- use '{{ item.employee_id }}' as the parameter of function -->
+              <td>
+                <a href="" onclick="GetPunchInfo('{{ item.id }}'); return false;" >{{ item.user_name }}</a>
+              </td>
+              {% if item.entry_date_start.hour < 9 or item.entry_date_start.hour == 9 and item.entry_date_start.minute < 10 %}
+              <td style="color: green"> {{ item.entry_date_start }} </td>
+              {% else %}
+              <td style="color: red"> {{ item.entry_date_start }}</td>
+              {% endif %}
+
+              {% if item.entry_date_end.hour >= 18 %}
+              <td style="color: green"> {{ item.entry_date_end }} </td>
+              {% else %}
+              <td style="color: red"> {{ item.entry_date_end }}</td>
+              {% endif %}
+              <td> {{ item.full_name }} </td>
+          </tr>
+         {% endfor %}
+      </table>
+      <hr style="height:2px;border:none;border-top:2px dotted #000000;" />
+
+      <div id="dataTable">
+      </div>
+      
+ {# ----------------------------------------------------------------------------------------------------------- #}
+      <div>
+        <input type="button" id="add" name="add" value="Add punch info" style="border-radius:5px;border-width:1px;" />
+        <input type="text" id="punchdate_forsearch" name="punchdate_forsearch" style="margin-left: 200px;border-radius:5px;border-width:1px;" />
+        <input type="button" id="searchby_punchdate" name="searchby_punchdate" value="Search" style="border-radius:5px;border-width:1px;" />
+      </div>
+      <div id="calendar_search" style="margin-left: 325px;display:none"></div>
+      <hr style="height:2px;" />
+
+      <div id="dataTable_search">
+      </div>
+
+      <div id="EditpunchInfoDiv" style="display: none; margin-top: 20px">
+          {% csrf_token %}
+          <i>Add Punch Info:</i>
+          <ul>
+          <li>
+              User Name&nbsp;:<input id="username" type="text" style="height:23px;margin-left:10px;border-radius:5px;border-width:1px;width: 200px" readonly="readonly" />
+          </li>
+          <li>
+              Email&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:<input id="useremail" type="text" style="height:23px; margin-left:10px;border-radius:5px;border-width:1px; width: 200px" readonly="readonly" />
+          </li>
+          <li>
+              Punch Time:<input type="text" style="height:23px;margin-left:10px;border-radius:5px;border-width:1px;width: 200px" name="" id="punch_time" />
+          </li>
+          </ul>
+          <input type="button" id="save" name="save" value="Save" style="margin-left:10px;border-radius:5px;border-width:1px;" />
+          <input type="button" id="cancel" name="cancel" value="Cancel" style="margin-left:180px;border-radius:5px;border-width:1px;" />
+      </div>
+
+      <div id="AddpunchInfoDiv" style="display: none; margin-top: 20px">
+          {% csrf_token %}
+          <i style="top: -5px">Add Punch Info:</i>
+          <ul>
+              <li>
+                  User Name:
+                  <div style="width:200px;height:30px;margin-top: -25px">
+                      <div id='jqxcombobox' style="margin-left: 92px"></div>
+                  </div>
+              </li>
+              <li>
+                  Punch Date:
+                  <input type="text" style="margin-left:10px;border-radius:5px;border-width:1px;" name="" id="punch_date_add" /> 
+              </li>
+              <li>
+                  Punch Time:<input type="text" style="margin-left:10px;border-radius:5px;border-width:1px;" name="" id="punch_time_add" /> 
+              </li>
+          </ul>
+          <div id='jqxcalendar' style="margin-left: 133px;display: none;"></div>
+          <div>
+              <input type="button" id="add_new" name="add_new" value="Add Punch Info" style="margin-top: 10px;margin-left:10px;border-radius:5px;border-width:1px;" />
+              <input type="button" id="cancel_add" name="cancel_add" value="Cancel" style="margin-top: 10px;margin-left:180px;border-radius:5px;border-width:1px;" />
+          </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

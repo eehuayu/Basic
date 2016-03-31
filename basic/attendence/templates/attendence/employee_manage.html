@@ -1,0 +1,441 @@
+{% extends 'base.html' %} {% block head %} {% load staticfiles %}
+<link rel="stylesheet" href="{% static 'attendence/jqwidgets/styles/jqx.base.css' %}" type="text/css" />
+<link rel="stylesheet" href="{% static 'attendence/jqwidgets/styles/jqx.energyblue.css' %}" type="text/css" />
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxcore.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxdata.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxbuttons.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxscrollbar.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxlistbox.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxdropdownlist.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxdatatable.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxwindow.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxpanel.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxbuttons.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxinput.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/js/jqExtend.js' %}"></script>
+<script type="text/javascript" src="{% static 'attendence/jqwidgets/jqxtooltip.js' %}"></script>
+<script>
+$(function($) {
+    $("#userName").jqxInput({
+        placeHolder: "User Name",
+        height: 25,
+        width: 200,
+        theme: 'energyblue',
+        disabled: true
+    });
+    $("#firstName").jqxInput({
+        placeHolder: "First Name",
+        height: 25,
+        width: 200,
+        theme: 'energyblue'
+    });
+    $("#lastName").jqxInput({
+        placeHolder: "Last Name",
+        height: 25,
+        width: 200,
+        theme: 'energyblue'
+    });
+    $("#email").jqxInput({
+        placeHolder: "Email",
+        height: 25,
+        width: 400,
+        theme: 'energyblue'
+    });
+    $("#employeeEdit").jqxWindow({
+        height: 'auto',
+        width: 700,
+        theme: 'energyblue',
+
+    });
+    $("#save").jqxButton({
+        width: '120px',
+        height: '30px',
+        theme: 'energyblue'
+    }).on('click', function() {
+        $.ajax({
+            url: "/attendence/employee/manage/saveemployeeAjax",
+            async: true,
+            type: 'POST',
+            dataType: 'json',
+            data: $("#employeeEdit").param() + "&csrfmiddlewaretoken=" + $("input[name='csrfmiddlewaretoken']").val(),
+            success: function(result) {
+                $("#employeeEdit").jqxWindow("close");
+                $("#employeeEdit").clear();
+                var source = {
+                    dataType: "json",
+                    dataFields: [{
+                        name: 'employeeID',
+                        map: 'pk',
+                        type: 'string'
+                    }, {
+                        name: 'userName',
+                        map: 'fields>user_name',
+                        type: 'string'
+                    }, {
+                        name: 'firstName',
+                        map: 'fields>first_name',
+                        type: 'string'
+                    }, {
+                        name: 'lastName',
+                        map: 'fields>last_name',
+                        type: 'string'
+                    }, {
+                        name: 'email',
+                        map: 'fields>email',
+                        type: 'string'
+                    }],
+                    id: 'employeeID',
+                    localData: result
+                };
+                var dataAdapter = new $.jqx.dataAdapter(source);
+                $("#dataTable").jqxDataTable({
+                    source: dataAdapter
+                });
+                $("#dataTable").jqxDataTable("updateBoundData");
+
+            }
+        })
+    });
+    $("#cancel").jqxButton({
+        width: '120px',
+        height: '30px',
+        theme: 'energyblue'
+    }).on('click', function() {
+        $("#employeeEdit").jqxWindow("close");
+        $("#employeeEdit").clear();
+    });
+    $.ajax({
+        dataType: "json",
+        async: true,
+        url: "{% url 'attendence:get_employee_list'%}",
+        success: function(result) {
+            var source = {
+                dataType: "json",
+                dataFields: [{
+                    name: 'employeeID',
+                    map: 'pk',
+                    type: 'string'
+                }, {
+                    name: 'userName',
+                    map: 'fields>user_name',
+                    type: 'string'
+                }, {
+                    name: 'firstName',
+                    map: 'fields>first_name',
+                    type: 'string'
+                }, {
+                    name: 'lastName',
+                    map: 'fields>last_name',
+                    type: 'string'
+                }, {
+                    name: 'email',
+                    map: 'fields>email',
+                    type: 'string'
+                }],
+                id: 'employeeID',
+                localData: result
+            };
+            var dataAdapter = new $.jqx.dataAdapter(source);
+            $("#dataTable").jqxDataTable({
+                width: 1000,
+                height: 500,
+                source: dataAdapter,
+                columns: [{
+                    text: 'User Name',
+                    dataField: 'userName',
+                    width: 150,
+                    align: 'center',
+                    cellsAlign: 'center'
+                }, {
+                    text: 'First Name',
+                    dataField: 'firstName',
+                    width: 150,
+                    align: 'center'
+                }, {
+                    text: 'Last Name',
+                    dataField: 'lastName',
+                    width: 150,
+                    align: 'center'
+                }, {
+                    text: 'Email',
+                    dataField: 'email',
+                    align: 'center'
+                }],
+                columnsResize: true,
+                theme: 'energyblue',
+                pageable: true,
+                altRows: true,
+                sortable: true,
+                toolbarHeight: 35,
+                pagerButtonsCount: 8,
+                showToolbar: true,
+                renderToolbar: function(toolBar) {
+                    var theme = 'energyblue';
+                    var toTheme = function(className) {
+                            if (theme == "") return className;
+                            return className + " " + className + "-" + theme;
+                        }
+                        // appends buttons to the status bar.
+                    var container = $("<div style='overflow: hidden; position: relative; height: 100%; width: 100%;'></div>");
+                    var buttonTemplate = "<div style='float: left; padding: 3px; margin: 2px;'><div style='margin: 4px; width: 16px; height: 16px;'></div></div>";
+                    var addButton = $(buttonTemplate);
+                    var editButton = $(buttonTemplate);
+                    var deleteButton = $(buttonTemplate);
+                    var cancelButton = $(buttonTemplate);
+                    var updateButton = $(buttonTemplate);
+                    container.append(addButton);
+                    container.append(editButton);
+                    container.append(deleteButton);
+                    container.append(cancelButton);
+                    container.append(updateButton);
+                    toolBar.append(container);
+                    addButton.jqxButton({
+                        cursor: "pointer",
+                        enableDefault: false,
+                        height: 25,
+                        width: 25
+                    });
+                    addButton.find('div:first').addClass(toTheme('jqx-icon-plus'));
+                    addButton.jqxTooltip({
+                        position: 'bottom',
+                        content: "Add"
+                    });
+                    editButton.jqxButton({
+                        cursor: "pointer",
+                        disabled: true,
+                        enableDefault: false,
+                        height: 25,
+                        width: 25
+                    });
+                    editButton.find('div:first').addClass(toTheme('jqx-icon-edit'));
+                    editButton.jqxTooltip({
+                        position: 'bottom',
+                        content: "Edit"
+                    });
+                    deleteButton.jqxButton({
+                        cursor: "pointer",
+                        disabled: true,
+                        enableDefault: false,
+                        height: 25,
+                        width: 25
+                    });
+                    deleteButton.find('div:first').addClass(toTheme('jqx-icon-delete'));
+                    deleteButton.jqxTooltip({
+                        position: 'bottom',
+                        content: "Delete"
+                    });
+                    updateButton.jqxButton({
+                        cursor: "pointer",
+                        disabled: true,
+                        enableDefault: false,
+                        height: 25,
+                        width: 25
+                    });
+                    updateButton.find('div:first').addClass(toTheme('jqx-icon-save'));
+                    updateButton.jqxTooltip({
+                        position: 'bottom',
+                        content: "Save Changes"
+                    });
+                    cancelButton.jqxButton({
+                        cursor: "pointer",
+                        disabled: true,
+                        enableDefault: false,
+                        height: 25,
+                        width: 25
+                    });
+                    cancelButton.find('div:first').addClass(toTheme('jqx-icon-cancel'));
+                    cancelButton.jqxTooltip({
+                        position: 'bottom',
+                        content: "Cancel"
+                    });
+                    var updateButtons = function(action) {
+                        switch (action) {
+                            case "Select":
+                                addButton.jqxButton({
+                                    disabled: false
+                                });
+                                deleteButton.jqxButton({
+                                    disabled: false
+                                });
+                                editButton.jqxButton({
+                                    disabled: false
+                                });
+                                cancelButton.jqxButton({
+                                    disabled: true
+                                });
+                                updateButton.jqxButton({
+                                    disabled: true
+                                });
+                                break;
+                            case "Unselect":
+                                addButton.jqxButton({
+                                    disabled: false
+                                });
+                                deleteButton.jqxButton({
+                                    disabled: true
+                                });
+                                editButton.jqxButton({
+                                    disabled: true
+                                });
+                                cancelButton.jqxButton({
+                                    disabled: true
+                                });
+                                updateButton.jqxButton({
+                                    disabled: true
+                                });
+                                break;
+                            case "Edit":
+                                addButton.jqxButton({
+                                    disabled: true
+                                });
+                                deleteButton.jqxButton({
+                                    disabled: true
+                                });
+                                editButton.jqxButton({
+                                    disabled: true
+                                });
+                                cancelButton.jqxButton({
+                                    disabled: false
+                                });
+                                updateButton.jqxButton({
+                                    disabled: false
+                                });
+                                break;
+                            case "End Edit":
+                                addButton.jqxButton({
+                                    disabled: false
+                                });
+                                deleteButton.jqxButton({
+                                    disabled: false
+                                });
+                                editButton.jqxButton({
+                                    disabled: false
+                                });
+                                cancelButton.jqxButton({
+                                    disabled: true
+                                });
+                                updateButton.jqxButton({
+                                    disabled: true
+                                });
+                                break;
+                        }
+                    }
+                    var rowIndex = null;
+                    $("#dataTable").on('rowSelect', function(event) {
+                        var args = event.args;
+                        rowIndex = args.index;
+                        updateButtons('Select');
+                    });
+                    $("#dataTable").on('rowUnselect', function(event) {
+                        updateButtons('Unselect');
+                    });
+                    $("#dataTable").on('rowEndEdit', function(event) {
+                        updateButtons('End Edit');
+                    });
+                    $("#dataTable").on('rowBeginEdit', function(event) {
+                        updateButtons('Edit');
+                    });
+                    addButton.click(function(event) {
+                        if (!addButton.jqxButton('disabled')) {
+                            $("#employeeEdit").jqxWindow({
+                                position: {
+                                    x: $(event.target).offset().left + 200,
+                                    y: $(event.target).offset().top + 100
+                                }
+                            });
+                            $("#employeeEdit").jqxWindow('open');
+                            $("#employeeEdit").jqxWindow('focus');
+                            $("#userName").jqxInput({
+                                disabled: false
+                            });
+                            updateButtons('add');
+                        }
+                    });
+                    cancelButton.click(function(event) {
+                        if (!cancelButton.jqxButton('disabled')) {
+                            // cancel changes.
+                            $("#dataTable").jqxDataTable('endRowEdit', rowIndex, true);
+                        }
+                    });
+                    updateButton.click(function(event) {
+                        if (!updateButton.jqxButton('disabled')) {
+                            // save changes.
+                            $("#dataTable").jqxDataTable('endRowEdit', rowIndex, false);
+                        }
+                    });
+                    editButton.click(function() {
+                        if (!editButton.jqxButton('disabled')) {
+                            $("#dataTable").jqxDataTable('beginRowEdit', rowIndex);
+                            updateButtons('edit');
+                        }
+                    });
+                    deleteButton.click(function() {
+                        if (!deleteButton.jqxButton('disabled')) {
+                            $("#dataTable").jqxDataTable('deleteRow', rowIndex);
+                            updateButtons('delete');
+                        }
+                    });
+                },
+            });
+            $("#dataTable").on('rowDoubleClick', function(event) {
+                $("#employeeEdit").jqxWindow({
+                    position: {
+                        x: $(event.target).offset().left + 200,
+                        y: $(event.target).offset().top + 100
+                    }
+                });
+                $("#employeeEdit").jqxWindow('open');
+                $("#employeeEdit").jqxWindow('focus');
+
+                var args = event.args;
+                var row = args.row;
+
+                $("#employeeEdit").data("employeeID", row.employeeID);
+                $("#employeeEdit").param(row);
+            });
+        }
+    });
+    // prepare the data
+});
+</script>
+{% endblock %} {% block page %}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <strong>Employee Infomation</strong>
+        </h3>
+    </div>
+    <div class="panel-body">
+        <div id="dataTable">
+        </div>
+        <div id="employeeEdit" style="display: none;">
+            <div>Edit Employee</div>
+            <div style="position:relative;height:200px;">
+                {% csrf_token %}
+                <div style="position:absolute; left:5px;top:10px;">
+                    <span>UserName:</span>
+                    <input id="userName" name="userName" type="text" style="margin-left: 3px;"></input>
+                </div>
+                <div style="position:absolute; left:5px;top:40px;">
+                    <span>First Name:</span>
+                    <input id="firstName" name="firstName" type="text"></input>
+                </div>
+                <div style="position:absolute; left:350px;top:40px;">
+                    <span>Last Name:</span>
+                    <input id="lastName" name="lastName" type="text"></input>
+                </div>
+                <div style="position:absolute; left:5px;top:70px;">
+                    <span>Email:</span>
+                    <input id="email" name="email" type="text" style="margin-left:36px;"></input>
+                </div>
+                <div style="position:absolute; left:350px;top:110px;">
+                    <input type="button" id="save" value="Save" />
+                </div>
+                <div style="position:absolute; left:530px;top:110px;">
+                    <input type="button" id="cancel" value="Cancel" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
