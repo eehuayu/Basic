@@ -1,1 +1,2 @@
 #basic
+#Django project
